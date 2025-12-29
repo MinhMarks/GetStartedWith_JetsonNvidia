@@ -17,9 +17,9 @@ sudo apt-get update
 # 2. Cài đặt Python và PIP (nếu chưa có)
 sudo apt-get install -y python3 python3-pip
 
-# 3. Cài đặt các thư viện bổ trợ cho OpenCV (Rất quan trọng!)
-# Nếu thiếu cái này, OpenCV sẽ báo lỗi "ImportError: libGL.so.1..."
-sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
+# 3. Cài đặt các thư viện bổ trợ cho OpenCV
+# Lưu ý: Trên Ubuntu mới (22.04/24.04), gói 'libgl1-mesa-glx' đã đổi tên.
+sudo apt-get install -y libgl1 libglib2.0-0
 ```
 
 ## 3. Tải Code và Cài đặt thư viện Python
@@ -45,20 +45,47 @@ pip install -r requirements.txt
 python3 src/hand_gesture.py
 ```
 
-### ⚠️ Lưu ý về Webcam trên WSL
-Mặc định, WSL **không thể nhìn thấy** Webcam của Laptop bạn (vì lý do bảo mật của Windows).
-- **Trường hợp 1 (Đơn giản)**: Chương trình chạy lên, in ra "Đang mở Camera..." rồi báo lỗi không tìm thấy Camera và thoát.
-    - -> **Chúc mừng!** Bạn đã cài đặt môi trường thành công. Code đã chạy đúng logic. Việc không mở được Camera là do hạn chế của WSL, không phải do bạn làm sai.
+### ⚠️ Vấn đề: WSL không thấy Camera
+Mặc định, WSL bị "cô lập" nên không thấy Webcam của Laptop. Bạn có 2 cách giải quyết:
 
-- **Trường hợp 2 (Muốn Camera chạy thật)**:
-    - Bạn cần cài đặt công cụ **USBIPD-WIN** trên Windows để "chia sẻ" Webcam vào trong WSL.
-    - Đây là kỹ thuật nâng cao. Nếu bạn muốn thử, hãy tìm từ khóa: *"Connect USB devices to WSL using USBIPD"*.
+---
 
-### Cách test thay thế (Không cần USBIPD)
-Bạn có thể sửa code `src/hand_gesture.py` một chút để đọc từ **File Video** thay vì Webcam (`0`).
-1. Quay một video ngắn bàn tay của bạn (`test.mp4`), copy vào thư mục dự án.
-2. Sửa dòng `cap = cv2.VideoCapture(0)` thành `cap = cv2.VideoCapture('test.mp4')`.
-3. Chạy lại code -> Bạn sẽ thấy AI nhận diện trên video!
+### Cách 1: Dùng File Video (Dễ nhất - Khuyên dùng)
+Thay vì vật lộn với driver, bạn hãy quay 1 video ngắn bàn tay (`test.mp4`), copy vào thư mục code và chạy:
+
+1. Copy video vào thư mục đang đứng.
+2. Sửa code `src/hand_gesture.py`:
+   ```python
+   # Tìm dòng này:
+   cap = cv2.VideoCapture(0)
+   # Sửa thành:
+   cap = cv2.VideoCapture('test.mp4') 
+   ```
+3. Chạy lại `python3 src/hand_gesture.py`. Nếu nó hiện video và nhận diện tay -> **Thành công 100% về mặt code**.
+
+---
+
+### Cách 2: "Mount" Camera thật vào WSL (Nâng cao)
+Nếu bạn nhất quyết muốn dùng Webcam thật (livestream), bạn cần công cụ **USBIPD-WIN**.
+
+**B1: Trên Windows (PowerShell Administrator)**
+1. Cài đặt: `winget install usbipd`
+2. Cắm Webcam (hoặc nếu là camera laptop thì bỏ qua).
+3. Liệt kê thiết bị: `usbipd list`
+   - Tìm dòng có chữ "Integrated Webcam" hoặc "USB Video Device". Nhớ cái **BUSID** (ví dụ: `2-4`).
+4. Chia sẻ thiết bị: `usbipd bind --busid <BUSID_CUA_BAN>`
+5. Gắn vào WSL: `usbipd attach --wsl --busid <BUSID_CUA_BAN>`
+
+**B2: Trong WSL (Terminal Ubuntu)**
+1. Cài driver:
+   ```bash
+   sudo apt-get install linux-tools-virtual hwdata
+   sudo update-alternatives --install /usr/local/bin/usbip usbip /usr/lib/linux-tools/*/usbip 20
+   ```
+2. Kiểm tra lại: `ls /dev/video*`
+   - Nếu thấy `/dev/video0` hiện ra là thành công!
+
+---
 
 ---
 *Chúc mừng bạn đã làm chủ được dòng lệnh Linux!*
