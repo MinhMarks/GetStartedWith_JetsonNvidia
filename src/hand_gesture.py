@@ -74,6 +74,9 @@ def get_gesture_name(fingers):
 
 print("-> Đang mở Camera... Nhấn 'q' để thoát.")
 cap = cv2.VideoCapture(0) # Camera index 0
+# FIX cho WSL/USBIPD: Ép buộc dùng định dạng MJPG để tránh nghẽn băng thông (Timeout)
+cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+
 
 if not cap.isOpened():
     print("Lỗi: Không thể mở Camera.")

@@ -84,6 +84,10 @@ Nếu bạn nhất quyết muốn dùng Webcam thật (livestream), bạn cần 
    ```
 2. Kiểm tra lại: `ls /dev/video*`
    - Nếu thấy `/dev/video0` hiện ra là thành công!
+3. **Quan trọng**: Cấp quyền truy cập cho camera (nếu gặp lỗi "can't open camera"):
+   ```bash
+   sudo chmod 777 /dev/video0
+   ```
 
 ---
 
